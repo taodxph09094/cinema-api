@@ -6,20 +6,37 @@ const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 // Create new Order
 exports.newOrder = catchAsyncErrors(async (req, res, next) => {
   const {
-    orderItems,
+    nameFilm,
+    nameCinema,
+    address,
+    date,
+    time,
+    seats,
+    price,
+    promotion,
+    // quantity,
+    ticket,
     paymentInfo,
     itemsPrice,
     totalPrice,
   } = req.body;
 
   const order = await Order.create({
-
-    orderItems,
+    nameFilm,
+    nameCinema,
+    address,
+    date,
+    time,
+    seats,
+    price,
+    promotion,
+    // quantity,
+    ticket,
     paymentInfo,
     itemsPrice,
     totalPrice,
     paidAt: Date.now(),
-    userId:req.user._id,
+    user: req.user._id,
     userName: req.user.name,
   });
 
@@ -49,7 +66,6 @@ exports.getSingleOrder = catchAsyncErrors(async (req, res, next) => {
 // get logged in user  Orders
 exports.myOrders = catchAsyncErrors(async (req, res, next) => {
   const orders = await Order.find({ user: req.user._id });
-
   res.status(200).json({
     success: true,
     orders,
@@ -102,11 +118,11 @@ exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-async function updateStock(id, quantity) {
-  const releasedTime = await ReleasedTime.findById(id);
-  releasedTime.Stock -= quantity;
-  await releasedTime.save({ validateBeforeSave: false });
-}
+// async function updateStock(id, quantity) {
+//   const releasedTime = await ReleasedTime.findById(id);
+//   releasedTime.Stock -= quantity;
+//   await releasedTime.save({ validateBeforeSave: false });
+// }
 
 // delete Order -- Admin
 exports.deleteOrder = catchAsyncErrors(async (req, res, next) => {

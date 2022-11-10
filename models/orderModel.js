@@ -1,60 +1,57 @@
 const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
-
-  orderItems: [
+  nameFilm: {
+    type: String,
+  },
+  nameCinema: {
+    type: String,
+  },
+  address: {
+    type: String,
+  },
+  date: {
+    type: String,
+  },
+  time: {
+    type: String,
+  },
+  // seats: {
+  //   type: String,
+  // },
+  seats: [
     {
-      nameFilm: {
-        type: String,
-        required: true,
-      },
-      nameCinema: {
-        type: String,
-        required: true,
-      },
-      date:{
+      id: {
         type: String,
       },
-      time: {
+      number: {
         type: String,
-      },
-      seats: {
-        type: String,
-        required: true,
-      },
-      price: {
-        type: Number,
-        required: true,
-      },
-      promotion: {
-        type: Number,
-        required: true,
-      },
-      quantity: {
-        type: Number,
-        required: true,
-      },
-      image: {
-        type: String,
-        required: true,
-      },
-      ticket: {
-        type: mongoose.Schema.ObjectId,
-        ref: "ReleasedTime",
-        required: true,
       },
     },
   ],
-  userId: {
+  price: {
+    type: Number,
+    required: true,
+  },
+  promotion: {
+    type: Number,
+  },
+
+  ticket: {
+    type: mongoose.Schema.ObjectId,
+    ref: "ReleasedTime",
+    required: true,
+  },
+  user: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
     required: true,
   },
-userName:{
-  type: String,
+  userName: {
+    type: String,
     ref: "User",
     required: true,
-},
+  },
   paymentInfo: {
     id: {
       type: String,
@@ -82,7 +79,7 @@ userName:{
   orderStatus: {
     type: String,
     required: true,
-    default: "Đang xử lý",
+    default: "Đã xong",
   },
   deliveredAt: Date,
   createdAt: {
