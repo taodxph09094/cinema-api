@@ -61,7 +61,58 @@ exports.getAllFilms = catchAsyncErrors(async (req, res, next) => {
     filteredFilmsCount,
   });
 });
+exports.getDailyFilm = catchAsyncErrors(async (req, res, next) => {
+  const resultPerPage = 8;
+  const filmsCount = await Film.countDocuments();
 
+  const apiFeature = new ApiFeatures(
+    Film.find({ category: "Phim đang chiếu", hideFilm: "hiện" }),
+    req.query
+  )
+    .search()
+    .filter();
+
+  let films = await apiFeature.query;
+
+  let filteredFilmsCount = films.length;
+
+  apiFeature.pagination(resultPerPage);
+
+  films = await apiFeature.query;
+
+  res.status(200).json({
+    success: true,
+    films,
+    filmsCount,
+    resultPerPage,
+    filteredFilmsCount,
+  });
+});
+exports.getComingFilm = catchAsyncErrors(async (req, res, next) => {
+  const resultPerPage = 8;
+  const filmsCount = await Film.countDocuments();
+
+  const apiFeature = new ApiFeatures(
+    Film.find({ category: "Sắp ra mắt ", hideFilm: "hiện" }),
+    req.query
+  );
+
+  let films = await apiFeature.query;
+
+  let filteredFilmsCount = films.length;
+
+  apiFeature.pagination(resultPerPage);
+
+  films = await apiFeature.query;
+
+  res.status(200).json({
+    success: true,
+    films,
+    filmsCount,
+    resultPerPage,
+    filteredFilmsCount,
+  });
+});
 // Get All Film (Admin)
 exports.getAdminFilms = catchAsyncErrors(async (req, res, next) => {
   const films = await Film.find();
@@ -94,37 +145,6 @@ exports.updateFilm = catchAsyncErrors(async (req, res, next) => {
   if (!film) {
     return next(new ErrorHander("Không tìm thấy phim", 404));
   }
-
-  // Images Start Here
-  // let images = [];
-
-  // if (typeof req.body.images === "string") {
-  //   images.push(req.body.images);
-  // } else {
-  //   images = req.body.images;
-  // }
-
-  // if (images !== undefined) {
-  //   // Deleting Images From Cloudinary
-  //   for (let i = 0; i < film.images.length; i++) {
-  //     await cloudinary.v2.uploader.destroy(film.images[i].public_id);
-  //   }
-
-  //   const imagesLinks = [];
-
-  //   for (let i = 0; i < images.length; i++) {
-  //     const result = await cloudinary.v2.uploader.upload(images[i], {
-  //       folder: "films",
-  //     });
-
-  //     imagesLinks.push({
-  //       public_id: result.public_id,
-  //       url: result.secure_url,
-  //     });
-  //   }
-
-  //   req.body.images = imagesLinks;
-  // }
 
   film = await Film.findByIdAndUpdate(req.params.id, req.body, {
     new: true,

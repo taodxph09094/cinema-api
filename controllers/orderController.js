@@ -2,6 +2,7 @@ const Order = require("../models/orderModel");
 const ReleasedTime = require("../models/releasedTimeModel");
 const ErrorHander = require("../utils/errorhander");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
+const ApiFeatures = require("../utils/apifeatures");
 
 // Create new Order
 exports.newOrder = catchAsyncErrors(async (req, res, next) => {
@@ -14,11 +15,12 @@ exports.newOrder = catchAsyncErrors(async (req, res, next) => {
     seats,
     price,
     promotion,
-    // quantity,
+    quantity,
     ticket,
     paymentInfo,
     itemsPrice,
     totalPrice,
+    dateFind,
   } = req.body;
 
   const order = await Order.create({
@@ -30,11 +32,12 @@ exports.newOrder = catchAsyncErrors(async (req, res, next) => {
     seats,
     price,
     promotion,
-    // quantity,
+    quantity,
     ticket,
     paymentInfo,
     itemsPrice,
     totalPrice,
+    dateFind,
     paidAt: Date.now(),
     user: req.user._id,
     userName: req.user.name,
@@ -74,6 +77,7 @@ exports.myOrders = catchAsyncErrors(async (req, res, next) => {
 
 // get all Orders -- Admin
 exports.getAllOrders = catchAsyncErrors(async (req, res, next) => {
+  const ordersCount = await Order.countDocuments();
   const orders = await Order.find();
 
   let totalAmount = 0;
@@ -81,14 +85,40 @@ exports.getAllOrders = catchAsyncErrors(async (req, res, next) => {
   orders.forEach((order) => {
     totalAmount += order.totalPrice;
   });
-
+  let filteredOrdersCount = orders.length;
   res.status(200).json({
     success: true,
     totalAmount,
+    filteredOrdersCount,
+    ordersCount,
     orders,
   });
 });
+exports.getAllOrdersAndFil = catchAsyncErrors(async (req, res, next) => {
+  const resultPerPage = 8;
+  const ordersCount = await Order.countDocuments();
 
+  const apiFeature = new ApiFeatures(Order.find(), req.query)
+    .byCinema()
+    .byFilm()
+    .byDate()
+    .filter();
+  let orders = await apiFeature.query;
+
+  let filteredOrdersCount = orders.length;
+
+  apiFeature.pagination(resultPerPage);
+
+  orders = await apiFeature.query;
+
+  res.status(200).json({
+    success: true,
+    orders,
+    ordersCount,
+    resultPerPage,
+    filteredOrdersCount,
+  });
+});
 // update Order Status -- Admin
 exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
@@ -97,18 +127,18 @@ exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHander("Không tìm thấy đơn đặt hàng với Id này", 404));
   }
 
-  if (order.orderStatus === "Đã xong") {
-    return next(new ErrorHander("Đã thanh toán thành công", 400));
+  if (order.orderStatus === "Đang xử lý") {
+    return next(new ErrorHander("Đơn hàng này đã được bạn xử lý", 400));
   }
 
-  if (req.body.status === "Đang xử lý") {
-    order.orderItems.forEach(async (o) => {
-      await updateStock(o.releasedTime, o.quantity);
+  if (req.body.status === "Đã xong") {
+    order.forEach(async (o) => {
+      await updateStock(o.ticket, o.quantity);
     });
   }
   order.orderStatus = req.body.status;
 
-  if (req.body.status === "Đã xong") {
+  if (req.body.status === "Đang xử lý") {
     order.deliveredAt = Date.now();
   }
 
@@ -118,11 +148,11 @@ exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-// async function updateStock(id, quantity) {
-//   const releasedTime = await ReleasedTime.findById(id);
-//   releasedTime.Stock -= quantity;
-//   await releasedTime.save({ validateBeforeSave: false });
-// }
+async function updateStock(id, quantity) {
+  const releasedTime = await ReleasedTime.findById(id);
+  releasedTime.Stock -= quantity;
+  await releasedTime.save({ validateBeforeSave: false });
+}
 
 // delete Order -- Admin
 exports.deleteOrder = catchAsyncErrors(async (req, res, next) => {

@@ -4,6 +4,45 @@ class ApiFeatures {
     this.queryStr = queryStr;
   }
 
+  byCinema() {
+    const keyword = this.queryStr.keyword
+      ? {
+          nameCinema: {
+            $regex: this.queryStr.keyword,
+            $options: "i",
+          },
+        }
+      : {};
+
+    this.query = this.query.find({ ...keyword });
+    return this;
+  }
+  byFilm() {
+    const nameFilm = this.queryStr.nameFilm
+      ? {
+          nameFilm: {
+            $regex: this.queryStr.nameFilm,
+            $options: "i",
+          },
+        }
+      : {};
+
+    this.query = this.query.find({ ...nameFilm });
+    return this;
+  }
+  byDate() {
+    const dateFind = this.queryStr.dateFind
+      ? {
+          dateFind: {
+            $regex: this.queryStr.dateFind,
+            $options: "i",
+          },
+        }
+      : {};
+
+    this.query = this.query.find({ ...dateFind });
+    return this;
+  }
   search() {
     const keyword = this.queryStr.keyword
       ? {
@@ -67,7 +106,14 @@ class ApiFeatures {
   filter() {
     const queryCopy = { ...this.queryStr };
     //   Removing some fields for category
-    const removeFields = ["keyword", "page", "limit", "code", "staffId"];
+    const removeFields = [
+      "keyword",
+      "page",
+      "limit",
+      "code",
+      "nameFilm",
+      "dateFind",
+    ];
 
     removeFields.forEach((key) => delete queryCopy[key]);
     let queryStr = JSON.stringify(queryCopy);

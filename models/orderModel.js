@@ -36,7 +36,10 @@ const orderSchema = new mongoose.Schema({
   promotion: {
     type: Number,
   },
-
+  quantity: {
+    type: Number,
+    required: true,
+  },
   ticket: {
     type: mongoose.Schema.ObjectId,
     ref: "ReleasedTime",
@@ -65,6 +68,9 @@ const orderSchema = new mongoose.Schema({
   paidAt: {
     type: Date,
     required: true,
+  },
+  dateFind: {
+    type: String,
   },
   itemsPrice: {
     type: Number,
